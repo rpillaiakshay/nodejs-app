@@ -1,34 +1,56 @@
 pipeline {
     agent any
-    environment {
-        AWS_REGION = 'us-east-1'
-        ECR_REPO = 'your-ecr-repo-name'
-        DOCKER_HUB_ID = 'your-docker-hub-id'
-        DOCKER_HUB_REPO = 'your-docker-hub-repo-name'
-        KUBECONFIG = '/home/jenkins/.kube/config'
+
+    parameters {
+        string(name: 'DOCKER_USERNAME', defaultValue: '', description: 'Docker Hub Username')
+        password(name: 'DOCKER_PASSWORD', defaultValue: '', description: 'Docker Hub Password')
     }
+
+    environment {
+        DOCKER_IMAGE = "your-docker-hub-id/nodejs-app:latest"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/rpillaiakshay/nodejs-app.git'
+                // Checkout the code from GitHub
+                git 'https://github.com/your-organization/nodejs-app.git'
             }
         }
-        stage('Build') {
+
+        stage('Install Dependencies') {
             steps {
                 script {
                     sh 'npm install'
-                    sh 'npm run test'  // Run tests if any
                 }
             }
         }
-        stage('Docker Build & Push') {
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_HUB_ID/$DOCKER_HUB_REPO:latest .'
-                    sh 'docker push $DOCKER_HUB_ID/$DOCKER_HUB_REPO:latest'
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
+
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    // Login to Docker Hub using the credentials passed from the outer pipeline
+                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                }
+            }
+        }
+
+        stage('Push Docker Image to DockerHub') {
+            steps {
+                script {
+                    sh 'docker push $DOCKER_IMAGE'
+                }
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
@@ -36,11 +58,6 @@ pipeline {
                     sh 'kubectl apply -f kubernetes/service.yaml'
                 }
             }
-        }
-    }
-    post {
-        always {
-            cleanWs()
         }
     }
 }
