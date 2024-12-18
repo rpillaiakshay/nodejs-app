@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/your-repo/nodejs-app.git'
+                git 'https://github.com/rpillaiakshay/nodejs-app.git'
             }
         }
         stage('Build') {
