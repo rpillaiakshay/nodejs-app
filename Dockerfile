@@ -1,16 +1,19 @@
 FROM node:16
 
+# Set the working directory inside the container
 WORKDIR /app
 
-# Ensure you're copying the necessary files to the /app directory in the container
-COPY package*.json /app/
+# Copy package.json and package-lock.json from the 'app' directory in the repository to the container's working directory
+COPY app/package*.json /app/
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of your application code
-COPY . /app
+# Copy the rest of your application code from the 'app' directory to the container's working directory
+COPY app/ /app/
 
+# Expose the port your application will run on
 EXPOSE 3000
 
+# Command to run your application
 CMD ["npm", "start"]
