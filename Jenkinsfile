@@ -7,56 +7,44 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = "your-docker-hub-id/nodejs-app:latest"
+        DOCKER_IMAGE = "rpillaiakshay/nodejs-app:latest"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                // Checkout the code from GitHub
-                git 'https://github.com/your-organization/nodejs-app.git'
+                git 'https://github.com/rpillaiakshay/nodejs-app.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                script {
-                    sh 'npm install'
-                }
+                sh 'npm install'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t $DOCKER_IMAGE .'
-                }
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                script {
-                    // Login to Docker Hub using the credentials passed from the outer pipeline
-                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                }
+                sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
             }
         }
 
-        stage('Push Docker Image to DockerHub') {
+        stage('Push Docker Image') {
             steps {
-                script {
-                    sh 'docker push $DOCKER_IMAGE'
-                }
+                sh 'docker push $DOCKER_IMAGE'
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    sh 'kubectl apply -f kubernetes/deployment.yaml'
-                    sh 'kubectl apply -f kubernetes/service.yaml'
-                }
+                sh 'kubectl apply -f kubernetes/deployment.yaml'
+                sh 'kubectl apply -f kubernetes/service.yaml'
             }
         }
     }
